@@ -2,6 +2,7 @@ package catalog
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -394,6 +395,51 @@ func CopyBaseFiles(templateDir, targetDir string) error {
 	}
 
 	return nil
+}
+
+// ReadSettingsTeammateMode reads settings.json and returns the current
+// teammateMode value (defaults to "auto" if absent).
+func ReadSettingsTeammateMode(targetDir string) (string, error) {
+	path := filepath.Join(targetDir, "settings.json")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", fmt.Errorf("reading settings.json: %w", err)
+	}
+
+	var settings map[string]interface{}
+	if err := json.Unmarshal(data, &settings); err != nil {
+		return "", fmt.Errorf("parsing settings.json: %w", err)
+	}
+
+	if mode, ok := settings["teammateMode"].(string); ok && mode != "" {
+		return mode, nil
+	}
+	return "auto", nil
+}
+
+// PatchSettingsTeammateMode reads the installed settings.json and sets the
+// teammateMode field to the given value.
+func PatchSettingsTeammateMode(targetDir, mode string) error {
+	path := filepath.Join(targetDir, "settings.json")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return fmt.Errorf("reading settings.json: %w", err)
+	}
+
+	var settings map[string]interface{}
+	if err := json.Unmarshal(data, &settings); err != nil {
+		return fmt.Errorf("parsing settings.json: %w", err)
+	}
+
+	settings["teammateMode"] = mode
+
+	out, err := json.MarshalIndent(settings, "", "  ")
+	if err != nil {
+		return fmt.Errorf("marshalling settings.json: %w", err)
+	}
+	out = append(out, '\n')
+
+	return os.WriteFile(path, out, 0o644)
 }
 
 // copyFile copies a single file.
