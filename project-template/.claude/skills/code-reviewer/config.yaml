@@ -1,0 +1,5 @@
+
+# Default configuration for the code-reviewer skill
+default_branch: main
+pr_tool: github
+review_depth: full

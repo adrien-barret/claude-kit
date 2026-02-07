@@ -1,0 +1,24 @@
+{
+  "env": {
+    "CONTEXT_COMPACT_THRESHOLD": "75",
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "permissions": {
+    "deny": [
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(./secrets/**)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)"
+    ],
+    "allow": [
+      "Read(src/**)",
+      "Read(.claude/**)",
+      "Bash(npm run *)",
+      "Bash(npm test *)",
+      "Bash(git status)",
+      "Bash(git diff *)",
+      "Bash(git log *)"
+    ]
+  }
+}
