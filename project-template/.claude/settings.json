@@ -1,4 +1,5 @@
 {
+  "teammateMode": "auto",
   "env": {
     "CONTEXT_COMPACT_THRESHOLD": "75",
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"

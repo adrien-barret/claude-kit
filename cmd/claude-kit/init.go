@@ -150,6 +150,26 @@ func runInteractiveInit() error {
 		return nil
 	}
 
+	// Step 2b: Ask for teammate mode if 2+ agents selected
+	teammateMode := "auto"
+	if len(selectedAgents) >= 2 {
+		teammateModeForm := huh.NewForm(
+			huh.NewGroup(
+				huh.NewSelect[string]().
+					Title("Teammate display mode").
+					Options(
+						huh.NewOption("auto -- split panes in tmux, otherwise in-process", "auto"),
+						huh.NewOption("in-process -- all teammates in one terminal", "in-process"),
+						huh.NewOption("tmux -- each teammate in its own pane (requires tmux/iTerm2)", "tmux"),
+					).
+					Value(&teammateMode),
+			),
+		).WithTheme(ckTheme())
+		if err := teammateModeForm.Run(); err != nil {
+			return err
+		}
+	}
+
 	// Step 3: Auto-compute all defaults from selected agents
 	selectedSet := make(map[string]bool)
 	for _, name := range selectedAgents {
@@ -229,6 +249,13 @@ func runInteractiveInit() error {
 		accentStyle.Render(fmt.Sprintf("%d rules", len(rules))),
 		dimStyle.Render(strings.Join(rules, ", ")),
 	))
+	if len(selectedAgents) >= 2 {
+		fmt.Println(fmt.Sprintf("    %s %s: %s",
+			bullet,
+			accentStyle.Render("teammate mode"),
+			dimStyle.Render(teammateMode),
+		))
+	}
 
 	fmt.Println()
 
@@ -252,6 +279,9 @@ func runInteractiveInit() error {
 	// Install base files
 	if err := catalog.CopyBaseFiles(tmplDir, targetDir); err != nil {
 		return fmt.Errorf("copying base files: %w", err)
+	}
+	if err := catalog.PatchSettingsTeammateMode(targetDir, teammateMode); err != nil {
+		return fmt.Errorf("patching teammate mode: %w", err)
 	}
 	if !isExisting {
 		fmt.Println(fmt.Sprintf("  %s %s", checkMark, accentStyle.Render("Installed CLAUDE.md + settings.json")))
