@@ -11,6 +11,8 @@ Your goal is to take the problem definition from the Break phase and produce an 
 
 Read `.claude/output/problem.yaml`. If it does not exist, tell the user to run `/bmad-break` first and stop.
 
+Read `.claude/output/principles.md` if it exists — use it to inform architectural decisions, tech stack choices, and acceptance criteria in the backlog.
+
 ## Stage 1: Architecture Design
 
 Based on the problem definition, design the system architecture:
@@ -137,10 +139,13 @@ Once confirmed, save both files and report completion.
 
 ## Next Step
 
-After the backlog is confirmed, tell the user to run `/ralph` to start autonomous implementation. Ralph will:
-- Parse the backlog into a PRD with parallel rounds
-- Create an agent team with teammates per story
-- Coordinate implementation across rounds, respecting dependencies
-- Run quality checks and produce `.claude/output/act-report.md`
+After the backlog is confirmed, the recommended next steps are:
+
+1. Run `/analyze` to check for cross-artifact inconsistencies
+2. Run `/checklist` to verify implementation readiness
+3. Run `/gsd-prep` to generate codebase mapping and context packs
+4. Run `/ralph` (or `/bmad-act`) to begin implementation
+
+Or simply run `/bmad-run` which orchestrates all of this automatically.
 
 If $ARGUMENTS is provided, use it as additional context: $ARGUMENTS

@@ -5,6 +5,16 @@ description: Ralph — autonomous implementation lead with agent teams. Works fr
 
 You are **Ralph**, an autonomous implementation lead. You break work into stories, create an agent team, and coordinate teammates to implement everything in parallel rounds — with contract-first development, plan approval, and acceptance validation.
 
+## Step 0: GSD Prep (Context Engineering)
+
+**After determining input (Step 1)**, check if `.claude/output/gsd/prep-report.md` exists:
+- **If it exists and is up-to-date** (backlog has not changed since prep was run): use the pre-computed context packs from `.claude/output/gsd/context-packs/`
+- **If it doesn't exist AND `backlog.yaml` + `architecture.yaml` exist on disk**: run the GSD prep process (follow `/gsd-prep` instructions) to generate codebase mapping, gap analysis, and bounded context packs before proceeding
+- **If it doesn't exist AND you generated the backlog from conversation** (Step 1 path 3): skip GSD prep — you'll provide architecture context directly in teammate spawn prompts instead of context packs
+- **If it exists but the backlog has changed** (stories added, removed, or modified since prep): warn the user and suggest re-running `/gsd-prep`
+
+This ensures every teammate gets a bounded, focused context instead of the full architecture dump — when artifacts exist. In conversational mode, Ralph handles context distribution directly.
+
 ## Step 1: Determine input
 
 Resolve the input in this order:
@@ -18,6 +28,7 @@ Resolve the input in this order:
    - Build the same structure as a BMAD backlog (id, title, depends_on, acceptance_criteria)
 
 Also read `.claude/output/architecture.yaml` if it exists — it provides design context for teammates.
+Also read `.claude/output/principles.md` if it exists — include relevant principles in teammate spawn prompts.
 
 ## Step 2: Parse and build the PRD
 
@@ -28,7 +39,13 @@ Read and convert to PRD:
 2. **Group into rounds**: tasks whose dependencies are all in earlier rounds can run in parallel within the same round
 3. **Number sequentially** by round order
 4. **Set `passes: false`** for all stories
-5. **Derive branch name**: `ralph/<project-name-lowercase-kebab>`
+5. **Derive branch name**: `NNN-<feature-name-lowercase-kebab>` where NNN is a 3-digit zero-padded number. To determine the next number:
+   - Check existing local branches: `git branch --list '[0-9]*'`
+   - Check existing remote branches: `git branch -r --list 'origin/[0-9]*'`
+   - Check existing spec directories in `.claude/output/` for numbered prefixes
+   - Take the highest number found across all sources, increment by 1
+   - If no numbered branches exist, start at `001`
+   - Example: if `002-user-auth` exists, next branch is `003-payment-flow`
 
 ### From JSON PRD (`.json`):
 
@@ -38,12 +55,26 @@ Read directly. Validate it has `project`, `branchName`, and `userStories`.
 
 Generate the PRD directly from the conversation. Follow the same structure — topological sort, rounds, sequential numbering. Ask the user for a project name, or infer one from the description.
 
+### Quality gate (conversational backlog only)
+
+When you generate the backlog yourself (not from a file), run this self-check before proceeding. For each story, verify:
+
+1. **Business value (WHY)**: does the story justify its existence? If `acceptanceCriteria` are purely technical with no user or business outcome, push back — ask "why does this matter?" and refine.
+2. **Acceptance criteria are testable**: vague criteria like "works correctly" or "handles errors" are not acceptance criteria. Each must be specific enough to become a test assertion.
+3. **No duplicates**: no two stories cover the same functionality with different wording.
+4. **Dependencies are coherent**: no circular dependencies, no story depends on something that doesn't exist.
+5. **Scope is realistic**: each story should be implementable by one teammate in one session. Split stories that try to do too much.
+
+If `principles.md` exists, cross-check: do the stories respect the testing standards, security requirements, and architecture principles defined there?
+
+Fix any issues found before writing the PRD. If you can't resolve something, flag it to the user in Step 3.
+
 ### Write `.claude/ralph-prd.json`:
 
 ```json
 {
   "project": "MyApp",
-  "branchName": "ralph/myapp",
+  "branchName": "003-myapp",
   "userStories": [
     {
       "id": "T-001",
@@ -119,6 +150,13 @@ Each teammate's spawn prompt:
 ```
 You are implementing story {id}: {title}
 
+## Context Pack
+{If GSD prep context packs exist (.claude/output/gsd/context-packs/round-N/T-XXX.md),
+ include the FULL content of the story's context pack here.
+ This replaces the Architecture Context section below with a bounded, focused subset.}
+
+{If NO context pack exists, fall back to the sections below:}
+
 ## Acceptance Criteria
 {acceptance_criteria as bullet list}
 
@@ -175,6 +213,15 @@ Use the project's installed skills when relevant:
 - **Clean code**: descriptive naming, small functions, no dead code
 - Follow existing project conventions (naming, file structure, patterns)
 
+{If .claude/output/principles.md exists, append the project-specific principles here.
+These take precedence over the generic principles above where they conflict.}
+
+## Feedback (if re-spawned after validation failure)
+{If .claude/output/gsd/context-packs/round-N/T-XXX-feedback.md exists,
+ include its FULL content here. This tells you exactly what failed in the
+ previous attempt, what needs fixing, and what approaches were already tried.
+ Address ALL listed issues before re-reporting completion.}
+
 ## Rules
 
 If blocked or unclear about anything, message the lead IMMEDIATELY — do NOT guess or wait.
@@ -206,9 +253,44 @@ After each teammate reports completion:
    - Verify architecture compliance
    - Run integration checks against other completed stories
    - Run the full test suite to catch regressions
-2. If validation **passes** → update `.claude/ralph-prd.json`, set `passes: true`
-3. If validation **fails** → send the teammate the specific issues to fix. Do NOT mark as passed. The teammate fixes and re-reports.
+2. If validation **passes** → update `.claude/ralph-prd.json`, set `passes: true`. If a feedback file exists for this story, delete it.
+3. If validation **fails** → write a structured feedback file and send the teammate the specific issues to fix. Do NOT mark as passed. The teammate reads the feedback file, fixes, and re-reports.
 4. Mark story as `"blocked": true` only if genuinely unresolvable
+
+**Feedback file** (written on validation failure):
+
+Write to `.claude/output/gsd/context-packs/round-N/T-XXX-feedback.md`:
+
+```markdown
+# Feedback: T-XXX — {story title}
+
+## Iteration
+{iteration number — starts at 1, increments on each failure}
+
+## Validation Result
+{FAIL}
+
+## Criteria Status
+{For each acceptance criterion: PASS or FAIL with evidence}
+
+## Issues to Fix
+{Specific, actionable list of what needs to change:
+- What is wrong (with file paths and line references where possible)
+- What the expected behavior should be
+- Suggested fix approach (optional)}
+
+## Test Failures
+{Any test failures with output, if applicable}
+
+## Integration Issues
+{Cross-story integration problems, if applicable}
+
+## Previous Iterations
+{Summary of prior feedback iterations, if this is iteration 2+.
+This helps the teammate understand what was already tried and avoid repeating failed approaches.}
+```
+
+This creates a persistent feedback trail. If a session is interrupted mid-fix, `/ralph-loop` can pick up the feedback file and re-spawn the teammate with full context of what failed and what was already attempted.
 
 **After ALL stories in the round are validated**:
 - Run the full test suite one final time

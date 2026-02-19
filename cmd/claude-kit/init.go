@@ -208,7 +208,10 @@ func runInteractiveInit() error {
 	if useBmad {
 		for _, cmd := range []string{
 			"bmad-run", "bmad-break", "bmad-model", "bmad-act", "bmad-deliver",
+			"principles", "clarify", "analyze", "checklist",
 			"ralph", "ralph-loop", "ralph-cancel",
+			"r", "p", "c", "g",
+			"gsd-prep",
 		} {
 			commandSet[cmd] = true
 		}

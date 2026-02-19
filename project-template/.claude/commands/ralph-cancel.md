@@ -18,12 +18,12 @@ Cancel the **Ralph Loop** and show a progress summary.
    - Remove the `Bash(.claude/hooks/ralph-stop.sh)` permission from `permissions.allow`
    - Preserve all other settings
 
-3. Remove the iteration counter file `.claude/.ralph-iteration` if it exists.
+3. Remove `.claude/hooks/ralph-stop.sh` if it exists.
 
 4. Report what was done:
    - Show the progress summary
    - Confirm the stop hook has been removed
-   - Note that `.claude/ralph-prd.json` and `.claude/ralph-prompt.md` are preserved for reference
-   - Suggest the user can re-run `/ralph` to restart the loop if needed
+   - Note that `.claude/ralph-prd.json` is preserved for reference
+   - Suggest the user can re-run `/ralph` to restart or `/ralph-loop` to resume
 
 If $ARGUMENTS is provided, use it as additional context: $ARGUMENTS

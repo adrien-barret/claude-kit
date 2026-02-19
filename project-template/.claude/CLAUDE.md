@@ -1,9 +1,50 @@
 # BMAD Project Template
 
+## Intent Detection — Read This First
+
+When the user sends a message **without a slash command**, default to `/ralph`. Ralph handles everything — from a vague description to a full backlog. This is the most common path.
+
+**Exceptions** — override the Ralph default when the user's intent clearly matches one of these:
+
+| Signal | Action |
+|--------|--------|
+| "go", "run it", "full workflow", "bmad" | Run `/bmad-run` |
+| Asks about principles, standards, governance | If `.claude/output/principles.md` exists: **read and display it**. If not: run `/principles` to create it. |
+| Questions requirements ("unclear", "what about", "edge case") | If `problem.yaml` exists: run `/clarify`. If not: run `/bmad-break`. |
+| "Check specs", "ready to code?", "anything missing" | If all 3 artifacts exist: run `/analyze`. If no CRITICAL issues, then run `/checklist`. If artifacts missing: say which phases to run. |
+| Asks for code review, test gen, security check | Run `/review`, `/test-gen`, or `/security-check`. |
+
+**When the user uses a slash command** (`/bmad-break`, `/ralph`, etc.): follow that command exactly. The default-to-Ralph rule only applies when there is NO slash command.
+
 ## Workflow
 
-- Full workflow: `/bmad-run` (Break -> Model -> Act -> Deliver + dev skills + security)
+- Full workflow: `/bmad-run` (Principles → Break → Clarify → Model → Analyze → Checklist → GSD Prep → Act → Deliver)
 - Individual phases: `/bmad-break`, `/bmad-model`, `/bmad-act`, `/bmad-deliver`
+- Spec & quality: `/principles`, `/clarify`, `/analyze`, `/checklist`
+- Implementation: `/ralph`, `/ralph-loop`, `/gsd-prep`
+
+## Command Reference
+
+### Standalone commands (work from just a prompt, no prior artifacts needed)
+
+| Command | What it does | Input |
+|---------|-------------|-------|
+| `/principles` | PO vs TL debate to define project governance | Codebase scan + interactive |
+| `/bmad-break` | Define problem, features, rich user stories | Project brief or prompt |
+| `/clarify` | Structured ambiguity scan | `problem.yaml` OR a project description as argument |
+| `/ralph` | Full implementation — backlog to code | Backlog file, `backlog.yaml`, OR a text description |
+
+### Pipeline commands (require prior BMAD artifacts)
+
+| Command | What it does | Requires |
+|---------|-------------|----------|
+| `/bmad-model` | Architecture + backlog design | `problem.yaml` |
+| `/analyze` | Cross-artifact consistency check (read-only) | `problem.yaml` + `architecture.yaml` + `backlog.yaml` |
+| `/checklist` | Pre-implementation quality gate | `problem.yaml` + `architecture.yaml` + `backlog.yaml` |
+| `/gsd-prep` | Codebase mapping + context packs for teammates | `backlog.yaml` + `architecture.yaml` |
+| `/bmad-act` | Implement from backlog (delegates to Ralph) | `backlog.yaml` + `architecture.yaml` |
+| `/bmad-deliver` | Prepare release | Implemented code |
+| `/ralph-loop` | Resume interrupted Ralph session | `.claude/ralph-prd.json` |
 
 ## Code Principles
 

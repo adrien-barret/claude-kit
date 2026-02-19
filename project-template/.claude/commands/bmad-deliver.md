@@ -11,7 +11,8 @@ Your goal is to prepare the project for release: deployment configuration, docum
 
 1. Read `.claude/output/architecture.yaml` for infrastructure and deployment design.
 2. Read `.claude/output/act-report.md` for what was implemented.
-3. Scan the project source tree to understand the current state of the code.
+3. Read `.claude/output/principles.md` if it exists — use security and deployment principles to guide the release process.
+4. Scan the project source tree to understand the current state of the code.
 
 If no code exists in the project, tell the user to run `/bmad-act` first and stop.
 

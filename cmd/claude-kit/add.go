@@ -301,7 +301,10 @@ func addBmadBundle(tmplDir, targetDir string) error {
 	// BMAD workflow commands + utilities
 	commands := []string{
 		"bmad-run", "bmad-break", "bmad-model", "bmad-act", "bmad-deliver",
+		"principles", "clarify", "analyze", "checklist",
 		"ralph", "ralph-loop", "ralph-cancel",
+		"r", "p", "c", "g",
+		"gsd-prep",
 		"role-product-owner", "role-architect", "role-tech-lead",
 		"review", "test-gen", "security-check", "commit-msg",
 		"code-only", "docs-gen", "pr-review",

@@ -5,35 +5,33 @@ description: BMAD Act phase – implement code from the backlog using Ralph agen
 
 Act as the **implementation coordinator** for the BMAD Act phase.
 
-Your goal is to implement the code from the backlog produced in the Model phase, using `/ralph` to orchestrate an agent team.
+This is Phase 3 of the BMAD workflow — all prior phases (Break, Clarify, Model, Analyze, Checklist, GSD Prep) should be complete before this runs.
 
 ## Prerequisites
 
-Read `.claude/output/backlog.yaml` and `.claude/output/architecture.yaml`. If either does not exist, tell the user to run `/bmad-model` first and stop.
-
-## Code Principles (mandatory)
-
-All code produced MUST follow:
-- **DRY**: extract shared logic into reusable functions or modules
-- **KISS**: simplest approach that works; no premature abstraction
-- **SOLID**: single responsibility, open/closed, dependency inversion
-- **Least invasive**: change only what the task requires
-- **No over-engineering**: no features or abstractions beyond what is asked
-- **Separation of concerns**: distinct layers for business logic, data access, transport, infrastructure
-- **Clean code**: descriptive naming, small functions, no dead code
+1. Read `.claude/output/backlog.yaml` and `.claude/output/architecture.yaml`. If either does not exist, tell the user to run `/bmad-model` first and stop.
+2. Read `.claude/output/principles.md` if it exists — pass project-specific standards to Ralph for teammate spawn prompts.
+3. Read `.claude/output/checklist.md` if it exists — confirm there are no unresolved FAIL items. If there are, warn the user before proceeding.
+4. Check if `.claude/output/gsd/prep-report.md` exists. If not, run `/gsd-prep` first to generate codebase mapping and context packs.
 
 ## Execution
 
-Follow the `/ralph` command instructions:
-1. Parse `.claude/output/backlog.yaml` into a PRD
-2. Group stories into parallel rounds based on dependencies
-3. Present execution plan and get user confirmation
-4. Create an agent team — spawn teammates per round for parallel implementation
-5. Each teammate implements one story, writes tests, commits
-6. Wait for each round to complete before starting the next
-7. Run quality checks after all stories pass
-8. Save report to `.claude/output/act-report.md`
+Delegate to `/ralph` for the full implementation process:
 
-Ralph handles the agent team coordination, task assignment, file conflict detection, and progress tracking. See `/ralph` for full details.
+- **Contract-first development**: shared interfaces committed before teammates start
+- **Plan approval**: each teammate plans before coding, lead reviews
+- **Parallel implementation**: teammates code in parallel within each round
+- **Acceptance validation**: lead validates each story, feedback loop on failure
+- **Quality checks**: code review, tests, security scan, dependency audit
+
+Follow ALL of Ralph's steps as defined in `/ralph`. Do NOT skip any phase.
+
+## BMAD Gate
+
+This phase is complete when:
+- All stories have `passes: true`
+- The full test suite passes
+- Quality checks report no critical issues
+- `.claude/output/act-report.md` has been produced
 
 If $ARGUMENTS is provided, use it as additional context or task filter: $ARGUMENTS

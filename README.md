@@ -114,7 +114,7 @@ For explicit type prefixes (`ck add <type> <name>`):
 
 | Category | Components |
 |----------|-----------|
-| **BMAD Workflow** | Break → Model → Act → Deliver |
+| **BMAD Workflow** | Principles → Break → Clarify → Model → Analyze → Checklist → GSD Prep → Act → Deliver |
 | **Agents** | Backend, Tech Lead, DevOps, Security, Pentester, FinOps |
 | **Dev Skills** | Code review, test generation, API docs, commit helper, README updater, dependency audit |
 | **Security Skills** | Code audit, infra audit, auth review, secret rotation, pentest simulation, threat modeling |
@@ -126,6 +126,12 @@ For explicit type prefixes (`ck add <type> <name>`):
 
 **BMAD Workflow:**
 `/bmad-run`, `/bmad-break`, `/bmad-model`, `/bmad-act`, `/bmad-deliver`
+
+**Spec & Quality Gates:**
+`/principles`, `/clarify`, `/analyze`, `/checklist`
+
+**Implementation:**
+`/ralph`, `/ralph-loop`, `/ralph-cancel`, `/gsd-prep`
 
 **Dev Skills:**
 `/review`, `/pr-review`, `/test-gen`, `/docs-gen`, `/commit-msg`, `/code-only`
@@ -314,11 +320,59 @@ To use the BMAD workflow, provide a **project brief**:
 Then run `/bmad-run` for the full workflow, or phase by phase:
 
 ```bash
-/bmad-break       # Define the problem → problem.yaml
+/principles       # (optional) PO vs TL debate → principles.md
+/bmad-break       # Define the problem with rich user stories → problem.yaml
+/clarify          # Structured ambiguity scan → updates problem.yaml
 /bmad-model       # Design architecture → architecture.yaml, backlog.yaml
-/bmad-act         # Implement code from backlog
+/analyze          # Cross-artifact consistency check (read-only)
+/checklist        # Pre-implementation quality gate → checklist.md
+/gsd-prep         # Codebase mapping + context packs for teammates
+/ralph            # Agent team implementation with numbered branches
 /bmad-deliver     # Prepare release → release-notes.md
 ```
+
+### Standalone vs pipeline commands
+
+Some commands work from just a prompt — no prior artifacts needed:
+
+| Command | Input |
+|---------|-------|
+| `/principles` | Codebase scan + interactive debate |
+| `/bmad-break` | Project brief or prompt |
+| `/clarify` | `problem.yaml` OR a project description as argument |
+| `/ralph` | Backlog file, `backlog.yaml`, OR a text description |
+
+Others require artifacts from earlier phases:
+
+| Command | Requires |
+|---------|----------|
+| `/bmad-model` | `problem.yaml` |
+| `/analyze` | `problem.yaml` + `architecture.yaml` + `backlog.yaml` |
+| `/checklist` | `problem.yaml` + `architecture.yaml` + `backlog.yaml` |
+| `/gsd-prep` | `backlog.yaml` + `architecture.yaml` |
+
+Common standalone patterns:
+
+```bash
+# Just want Ralph to implement from a description
+/ralph build a REST API for user management
+
+# Define principles before anything else
+/principles
+
+# Clarify a problem description without running break first
+/clarify I'm building a CLI tool for managing dotfiles...
+```
+
+---
+
+## Inspiration
+
+The BMAD workflow and its components draw from several methodologies:
+
+- **[BMAD](https://github.com/bmadcode/BMAD-METHOD)** — Break, Model, Act, Deliver. The phased approach to taking a project from idea to implementation with structured gates.
+- **[spec-kit](https://github.com/nicobailey-llc/spec-kit)** — Structured specification engineering. Inspired the `/principles` (project governance via structured debate), `/clarify` (ambiguity scanning), `/analyze` (cross-artifact consistency), and `/checklist` (pre-implementation quality gate) commands.
+- **Ralph + ralph-loop** — Autonomous implementation lead pattern. Ralph parses a backlog into parallel rounds, spawns agent teammates with bounded context packs, and coordinates contract-first development. `/ralph-loop` enables session-resilient execution via stop hooks.
 
 ---
 
