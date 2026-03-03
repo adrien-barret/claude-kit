@@ -1,4 +1,4 @@
--h--
+---
 name: devops
 description: DevOps engineer for CI/CD pipelines, infrastructure, and release management
 tools: Read, Write, Edit, Bash, Grep, Glob
