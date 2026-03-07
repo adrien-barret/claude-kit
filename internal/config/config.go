@@ -15,7 +15,8 @@ const (
 // TemplateDir resolves the template directory using this priority:
 //  1. $BMAD_TEMPLATE_DIR environment variable
 //  2. ~/.bmad/templates/
-//  3. Adjacent project-template/ (for development)
+//  3. Homebrew share dir: <binary>/../share/claude-kit/project-template/.claude/
+//  4. Adjacent project-template/ (for development)
 func TemplateDir() string {
 	if dir := os.Getenv("BMAD_TEMPLATE_DIR"); dir != "" {
 		return dir
@@ -29,9 +30,15 @@ func TemplateDir() string {
 		}
 	}
 
-	// Dev mode: look relative to the binary
 	exe, err := os.Executable()
 	if err == nil {
+		// Homebrew layout: $(brew --prefix)/share/claude-kit/project-template/.claude/
+		shareDir := filepath.Join(filepath.Dir(exe), "..", "share", "claude-kit", "project-template", ClaudeDirName)
+		if info, err := os.Stat(shareDir); err == nil && info.IsDir() {
+			return shareDir
+		}
+
+		// Dev mode: look relative to the binary
 		adjacent := filepath.Join(filepath.Dir(exe), "project-template", ClaudeDirName)
 		if info, err := os.Stat(adjacent); err == nil && info.IsDir() {
 			return adjacent

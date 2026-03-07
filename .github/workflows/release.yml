@@ -9,74 +9,22 @@ permissions:
   contents: write
 
 jobs:
-  build:
-    name: Build ${{ matrix.goos }}-${{ matrix.goarch }}
+  release:
+    name: GoReleaser
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - goos: darwin
-            goarch: arm64
-          - goos: darwin
-            goarch: amd64
-          - goos: linux
-            goarch: amd64
-          - goos: linux
-            goarch: arm64
-          - goos: windows
-            goarch: amd64
-
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
 
-      - name: Build binary
+      - uses: goreleaser/goreleaser-action@v6
+        with:
+          version: "~> v2"
+          args: release --clean
         env:
-          GOOS: ${{ matrix.goos }}
-          GOARCH: ${{ matrix.goarch }}
-          CGO_ENABLED: "0"
-        run: |
-          BIN=ck
-          [ "$GOOS" = "windows" ] && BIN=ck.exe
-          go build -trimpath -ldflags="-s -w -X main.version=${{ github.ref_name }}" -o "$BIN" ./cmd/claude-kit
-
-      - name: Package zip
-        run: |
-          TAG=${{ github.ref_name }}
-          PLATFORM=${{ matrix.goos }}-${{ matrix.goarch }}
-          ARCHIVE="claude-kit-${TAG}-${PLATFORM}.zip"
-          DIR="claude-kit-${TAG}-${PLATFORM}"
-
-          mkdir -p "$DIR"
-          BIN=ck
-          [ "${{ matrix.goos }}" = "windows" ] && BIN=ck.exe
-          cp "$BIN" "$DIR/"
-          cp -r project-template "$DIR/"
-
-          zip -r "$ARCHIVE" "$DIR/"
-          echo "ARCHIVE=$ARCHIVE" >> $GITHUB_ENV
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.goos }}-${{ matrix.goarch }}
-          path: "*.zip"
-
-  release:
-    name: Create GitHub Release
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-          merge-multiple: true
-
-      - name: Create release
-        uses: softprops/action-gh-release@v2
-        with:
-          name: ${{ github.ref_name }}
-          generate_release_notes: true
-          files: artifacts/*.zip
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
