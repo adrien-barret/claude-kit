@@ -40,7 +40,7 @@ brews:
     license: MIT
     install: |
       bin.install "ck"
-      share.install "project-template" => "claude-kit/project-template"
+      (share/"claude-kit").install "project-template"
     test: |
       system "#{bin}/ck", "version"
 
