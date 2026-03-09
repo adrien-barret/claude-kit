@@ -31,11 +31,11 @@ archives:
 brews:
   - name: claude-kit
     repository:
-      owner: codeallthethingz
+      owner: "{{ .Env.GITHUB_REPOSITORY_OWNER }}"
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
     directory: Formula
-    homepage: https://github.com/anthropics/claude-kit
+    homepage: https://github.com/adrien-barret/claude-kit
     description: CLI tool for bootstrapping Claude Code projects with best-practice templates
     license: MIT
     install: |
