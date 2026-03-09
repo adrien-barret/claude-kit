@@ -49,6 +49,7 @@ func init() {
 	rootCmd.AddCommand(docsCmd)
 	rootCmd.AddCommand(teammateModeCmd)
 	rootCmd.AddCommand(depCmd)
+	rootCmd.AddCommand(profileCmd)
 }
 
 func resolveTemplateDir() string {

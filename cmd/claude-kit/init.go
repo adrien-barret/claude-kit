@@ -170,6 +170,22 @@ func runInteractiveInit() error {
 		}
 	}
 
+	// Step 2c: Ask about Ralph worktree isolation (only relevant with BMAD + 2+ agents)
+	useWorktrees := false
+	if useBmad && len(selectedAgents) >= 2 {
+		worktreesForm := huh.NewForm(
+			huh.NewGroup(
+				huh.NewConfirm().
+					Title("Enable Ralph worktree isolation?").
+					Description("Each teammate gets an isolated git worktree. Adds a merge phase per round. Default: off.").
+					Value(&useWorktrees),
+			),
+		).WithTheme(ckTheme())
+		if err := worktreesForm.Run(); err != nil {
+			return err
+		}
+	}
+
 	// Step 3: Auto-compute all defaults from selected agents
 	selectedSet := make(map[string]bool)
 	for _, name := range selectedAgents {
@@ -261,6 +277,17 @@ func runInteractiveInit() error {
 			dimStyle.Render(teammateMode),
 		))
 	}
+	if useBmad && len(selectedAgents) >= 2 {
+		worktreesLabel := "off (default)"
+		if useWorktrees {
+			worktreesLabel = "on — worktree per teammate, merge phase per round"
+		}
+		fmt.Println(fmt.Sprintf("    %s %s: %s",
+			bullet,
+			accentStyle.Render("ralph worktrees"),
+			dimStyle.Render(worktreesLabel),
+		))
+	}
 
 	fmt.Println()
 
@@ -327,6 +354,15 @@ func runInteractiveInit() error {
 			continue
 		}
 		fmt.Println(fmt.Sprintf("  %s %s", checkMark, infoStyle.Render(fmt.Sprintf("rule: %s", name))))
+	}
+
+	// Patch ralph.md for worktree isolation if requested
+	if useWorktrees {
+		if err := catalog.PatchRalphWorktrees(targetDir); err != nil {
+			fmt.Fprintln(os.Stderr, errorStyle.Render(fmt.Sprintf("  ralph worktrees: %v", err)))
+		} else {
+			fmt.Println(fmt.Sprintf("  %s %s", checkMark, infoStyle.Render("command: ralph (worktree isolation enabled)")))
+		}
 	}
 
 	// Install agent-teams rule if more than one agent selected

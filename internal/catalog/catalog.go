@@ -442,6 +442,47 @@ func PatchSettingsTeammateMode(targetDir, mode string) error {
 	return os.WriteFile(path, out, 0o644)
 }
 
+// PatchRalphWorktrees modifies the installed ralph.md to enable git worktree
+// isolation for teammate spawning. It updates Phase C to spawn with worktrees,
+// inserts a new Phase D (Merge) between Implement and Validate, and renames
+// the existing Phase D to Phase E.
+func PatchRalphWorktrees(targetDir string) error {
+	path := filepath.Join(targetDir, "commands", "ralph.md")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return fmt.Errorf("reading ralph.md: %w", err)
+	}
+	content := string(data)
+
+	// 1. Update round cycle count
+	content = strings.Replace(content, "4-phase cycle:", "5-phase cycle:", 1)
+
+	// 2. Phase C header + body: mention worktrees and track returned branches
+	content = strings.Replace(content,
+		"### Phase C: Implement (teammates code in parallel)",
+		"### Phase C: Implement (teammates code in parallel — isolated worktrees)", 1)
+	content = strings.Replace(content,
+		"After approving all plans for the round, teammates implement in parallel. Monitor progress:",
+		"After approving all plans for the round, spawn each teammate with `isolation: \"worktree\"` in the Task tool call. Record the worktree branch returned by each Task — needed for Phase D. Monitor progress:", 1)
+
+	// 3. Insert Phase D (Merge) and rename existing Phase D → Phase E
+	mergePhase := "### Phase D: Merge worktrees\n\n" +
+		"After all teammates in the round report completion, merge their worktree branches into the current branch:\n\n" +
+		"1. For each worktree branch (in story dependency order):\n" +
+		"   - `git merge <worktree-branch> --no-ff -m \"merge(T-XXX): <story title>\"`\n" +
+		"   - Conflicts on generated files (`go.sum`, `package-lock.json`, lock files): accept incoming changes\n" +
+		"   - Real conflicts: pause, show the user the conflicting files, and wait for resolution before continuing\n" +
+		"2. Clean up: `git branch -d <worktree-branch>` for each merged branch\n" +
+		"3. Run the full test suite to verify the merged state is coherent before proceeding to Phase E\n\n" +
+		"---\n\n" +
+		"### Phase E: Validate (lead reviews each completed story)"
+	content = strings.Replace(content,
+		"### Phase D: Validate (lead reviews each completed story)",
+		mergePhase, 1)
+
+	return os.WriteFile(path, []byte(content), 0o644)
+}
+
 // copyFile copies a single file.
 func copyFile(src, dst string) error {
 	data, err := os.ReadFile(src)

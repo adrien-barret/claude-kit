@@ -432,3 +432,7 @@ Rules are modular project instructions loaded based on file patterns:
 | `infrastructure.md` | `infra/**`, `*.tf`, `Dockerfile*`, `k8s/**` | IaC-only changes (no manual `gcloud`/`aws`/`kubectl` mutations), least-privilege IAM, non-root containers |
 | `documentation.md` | `docs/**`, `**/*.md` | Close to code, examples, keep updated |
 | `finops.md` | `infra/**`, `*.tf`, `k8s/**`, `helm/**` | Tagging, rightsizing, lifecycle, scheduling |
+
+---
+
+Upstream repository: [adrien-barret/claude-kit](https://github.com/adrien-barret/claude-kit)
